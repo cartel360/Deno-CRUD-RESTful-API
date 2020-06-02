@@ -12,7 +12,7 @@ const router = new Router();
 router.get("/API/products", getProducts)
   .get("/API/products/:id", getProduct)
   .post("/API/products", addProduct)
-  .put("/API/products", updateProduct)
+  .put("/API/products/:id", updateProduct)
   .delete("/API/products", deleteProduct);
 
 export default router;

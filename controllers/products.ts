@@ -75,8 +75,37 @@ const addProduct = async (
 };
 
 // Update A Product @route PUT /API/products/:id
-const updateProduct = ({ response }: { response: any }) => {
-  response.body = "update";
+const updateProduct = async (
+  { params, request, response }: {
+    params: { id: string };
+    request: any;
+    response: any;
+  },
+) => {
+  const product: Product | undefined = products.find((p) => p.id === params.id);
+
+  if (product) {
+    const body = await request.body();
+
+    const updateData: { name?: string; description?: string; price?: number } =
+      body.value;
+
+    products = products.map((p) =>
+      p.id === params.id ? { ...p, ...updateData } : p
+    );
+
+    response.status = 200;
+    response.body = {
+      success: true,
+      data: products,
+    };
+  } else {
+    response.status = 404;
+    response.body = {
+      success: false,
+      msg: "No Product Found",
+    };
+  }
 };
 
 // Delete A Product @route DELETE /API/products/:id
