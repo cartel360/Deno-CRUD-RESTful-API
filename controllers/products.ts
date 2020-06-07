@@ -1,5 +1,11 @@
+import { Client } from "https://deno.land/x/postgres/mod.ts"; // Added This
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import { Product } from "../types.ts";
+import { database } from "../config.ts"; // Added This
+
+// Added This
+// Init Client
+const client = new Client(database);
 
 let products: Product[] = [
   {
@@ -55,6 +61,7 @@ const addProduct = async (
   { request, response }: { request: any; response: any },
 ) => {
   const body = await request.body();
+  const product = body.vaue;
 
   if (!request.hasBody) {
     response.status = 400;
@@ -63,14 +70,30 @@ const addProduct = async (
       msg: "No Data",
     };
   } else {
-    const product: Product = body.value;
-    product.id = v4.generate();
-    products.push(product);
-    response.status = 201;
-    response.body = {
-      success: true,
-      data: product,
-    };
+    try {
+      await client.connect();
+
+      const result = await client.query(
+        "INSERT INTO products(name,description,price) VALUES($1,$2,$3)",
+        product.name,
+        product.description,
+        product.price,
+      );
+
+      response.status = 201;
+      response.body = {
+        success: true,
+        data: product,
+      };
+    } catch (error) {
+      response.status = 500;
+      response.body = {
+        success: false,
+        msg: error.toString(),
+      };
+    } finally {
+      await client.end;
+    }
   }
 };
 
